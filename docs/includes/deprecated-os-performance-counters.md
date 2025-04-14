@@ -7,6 +7,11 @@ ms.service: sql
 ---
 
 ```sql
-SELECT * FROM sys.dm_os_performance_counters   
-WHERE object_name LIKE '%SQL%Deprecated Features%';  
+SELECT *
+FROM sys.dm_os_performance_counters
+WHERE [object_name] LIKE '%Deprecat%'
+ORDER BY cntr_value DESC,
+	[object_name],
+	counter_name,
+	instance_name
 ```
