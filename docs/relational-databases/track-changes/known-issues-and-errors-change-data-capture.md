@@ -31,12 +31,13 @@ For CDC to function properly, you shouldn't manually modify any CDC metadata suc
 Any objects in [sys.objects](../system-catalog-views/sys-objects-transact-sql.md) with `is_ms_shipped` property set to `1` shouldn't be modified.
 
 ```sql
-SELECT    name AS object_name   
-        ,SCHEMA_NAME(schema_id) AS schema_name  
-        ,type_desc  
-        ,is_ms_shipped  
-FROM sys.objects 
-WHERE is_ms_shipped= 1 AND SCHEMA_NAME(schema_id) = 'cdc'
+SELECT [name] AS [object_name]
+    ,SCHEMA_NAME([schema_id]) AS [schema_name]
+    ,[type_desc]
+    ,is_ms_shipped
+FROM sys.objects
+WHERE is_ms_shipped = 1
+    AND [schema_id] = SCHEMA_ID('cdc');
 ```
 
 ## Collation differences
@@ -53,17 +54,18 @@ For example, if you have one database that uses a collation of SQL_Latin1_Genera
 
 ```sql
 CREATE TABLE T1( 
-     C1 INT PRIMARY KEY, 
-     C2 VARCHAR(10) collate Chinese_PRC_CI_AI)
+    C1 INT PRIMARY KEY, 
+    C2 VARCHAR(10) collate Chinese_PRC_CI_AI
+    )
 ```
 
 CDC might fail to capture the binary data for column C2, because its collation is different (Chinese_PRC_CI_AI). Use **nvarchar** to avoid this problem:
 
 ```sql
 CREATE TABLE T1( 
-     C1 INT PRIMARY KEY, 
-     C2 NVARCHAR(10) collate Chinese_PRC_CI_AI --Unicode data type, CDC works well with this data type
-     )
+    C1 INT PRIMARY KEY, 
+    C2 NVARCHAR(10) collate Chinese_PRC_CI_AI /*Unicode data type, CDC works well with this data type*/
+    )
 ```
 
 ## Accelerated database recovery (ADR) and change data capture (CDC)
@@ -285,15 +287,15 @@ If the `cdc user` was removed, you can manually add the user back.
 Use the following T-SQL script, to create a user (`cdc`), and assign the proper role for the same (**db_owner**).
 
 ```sql
-IF NOT EXISTS 
-(
-    SELECT * 
-    FROM sys.database_principals 
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.database_principals
     WHERE NAME = 'cdc'
-)
+    )
 BEGIN
     CREATE USER [cdc] 
-    WITHOUT LOGIN WITH DEFAULT_SCHEMA = [cdc];
+    WITHOUT LOGIN
+    WITH DEFAULT_SCHEMA = [cdc];
 END
 
 EXEC sp_addrolemember 'db_owner', 'cdc';
